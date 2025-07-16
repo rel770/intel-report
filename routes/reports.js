@@ -179,4 +179,42 @@ router.delete("/:id", async (req, res) => {
   }
 });
 
+/**
+ * GET /reports/:id
+ * Get report by ID
+ */
+router.get("/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        error: "Invalid report ID format",
+      });
+    }
+
+    const collection = req.app.get("collection");
+    const report = await collection.findOne({ _id: new ObjectId(id) });
+
+    if (!report) {
+      return res.status(404).json({
+        error: "Report not found",
+      });
+    }
+
+    res.json({
+      message: "Report retrieved successfully",
+      report,
+    });
+  } catch (error) {
+    console.error("Error fetching report:", error);
+    res.status(500).json({
+      error: "Failed to fetch report",
+      message: error.message,
+    });
+  }
+});
+
+
 module.exports = router;
