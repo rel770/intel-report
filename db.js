@@ -25,10 +25,10 @@ async function connectDB() {
     const db = client.db("intelligence_unit");
     reportsCollection = db.collection("intel_reports");
 
-    console.log("✅ MongoDB connection established successfully");
+    console.log("✔ MongoDB connection established successfully");
     return client;
   } catch (error) {
-    console.error("❌ MongoDB connection error:", error);
+    console.error("✘ MongoDB connection error:", error);
     throw error;
   }
 }
