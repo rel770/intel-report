@@ -18,17 +18,17 @@ let reportsCollection;
  */
 async function connectDB() {
   try {
-    // Create connection to database
+    // Simple connection without additional options
     client = await MongoClient.connect(process.env.CONNECTION_STRING);
 
     // Access database and collection
     const db = client.db("intelligence_unit");
     reportsCollection = db.collection("intel_reports");
 
-    console.log("MongoDB connection established successfully");
+    console.log("✅ MongoDB connection established successfully");
     return client;
   } catch (error) {
-    console.error("MongoDB connection error:", error);
+    console.error("❌ MongoDB connection error:", error);
     throw error;
   }
 }
