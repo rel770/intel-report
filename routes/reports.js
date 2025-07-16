@@ -216,5 +216,34 @@ router.get("/:id", async (req, res) => {
   }
 });
 
+/**
+ * GET /reports/agent/:fieldCode
+ * Get all reports from specific agent
+ */
+router.get("/agent/:fieldCode", async (req, res) => {
+  try {
+    const { fieldCode } = req.params;
+
+    const collection = req.app.get("collection");
+    const agentReports = await collection
+      .find({
+        fieldCode: fieldCode,
+      })
+      .toArray();
+
+    res.json({
+      message: `Reports from agent ${fieldCode}`,
+      agent: fieldCode,
+      count: agentReports.length,
+      reports: agentReports,
+    });
+  } catch (error) {
+    console.error("Error fetching agent reports:", error);
+    res.status(500).json({
+      error: "Failed to fetch agent reports",
+      message: error.message,
+    });
+  }
+});
 
 module.exports = router;
