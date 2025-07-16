@@ -26,10 +26,12 @@ app.use((req, res, next) => {
 // Load route files
 const reportsRoutes = require("./routes/reports");
 const statsRoutes = require("./routes/stats");
+const healthRoutes = require("./routes/health");
 
 // Configure routes
 app.use("/reports", reportsRoutes);
 app.use("/stats", statsRoutes);
+app.use("/health", healthRoutes);
 
 // Basic entry point
 app.get("/", (req, res) => {
@@ -43,6 +45,7 @@ app.get("/", (req, res) => {
       "/reports/:id/confirm",
       "/reports/agent/:fieldCode",
       "/stats",
+      "/health",
     ],
   });
 });
