@@ -37,7 +37,11 @@ exports.getHighThreatReports = async (req, res) => {
   try {
     const collection = getCollection();
     const highThreatReports = await collection.find({ threatLevel: { $gte: 4 } }).toArray();
-    res.json({ message: "High-priority threat reports", count: highThreatReports.length, reports: highThreatReports });
+    res.json({
+      message: "High-priority threat reports",
+      count: highThreatReports.length,
+      reports: highThreatReports,
+    });
   } catch (error) {
     console.error("Error fetching high-priority reports:", error);
     res.status(500).json({ error: "Failed to fetch high-priority reports", message: error.message });
@@ -107,7 +111,12 @@ exports.getAgentReports = async (req, res) => {
     const { fieldCode } = req.params;
     const collection = getCollection();
     const agentReports = await collection.find({ fieldCode: fieldCode }).toArray();
-    res.json({ message: `Reports from agent ${fieldCode}`, agent: fieldCode, count: agentReports.length, reports: agentReports });
+    res.json({
+      message: `Reports from agent ${fieldCode}`,
+      agent: fieldCode,
+      count: agentReports.length,
+      reports: agentReports,
+    });
   } catch (error) {
     console.error("Error fetching agent reports:", error);
     res.status(500).json({ error: "Failed to fetch agent reports", message: error.message });

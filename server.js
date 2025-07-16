@@ -1,6 +1,6 @@
 /**
  * Express Application Setup
- * 
+ *
  * This file is responsible for:
  * 1. Express application configuration
  * 2. Middleware setup
@@ -40,10 +40,10 @@ app.get("/", (req, res) => {
       "/reports",
       "/reports/high",
       "/reports/:id",
-      "/reports/:id/confirm", 
+      "/reports/:id/confirm",
       "/reports/agent/:fieldCode",
-      "/stats"
-    ]
+      "/stats",
+    ],
   });
 });
 
@@ -52,7 +52,7 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     error: "Internal server error",
-    message: err.message
+    message: err.message,
   });
 });
 
