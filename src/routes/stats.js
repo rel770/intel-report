@@ -1,4 +1,5 @@
 const express = require('express');
+const { getCollection } = require('../db');
 const router = express.Router();
 
 /**
@@ -7,7 +8,7 @@ const router = express.Router();
  */
 router.get('/', async (req, res) => {
   try {
-    const collection = req.app.get('collection');
+    const collection = getCollection();
     
     // Get all counts in parallel
     const [

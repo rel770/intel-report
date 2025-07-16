@@ -1,4 +1,5 @@
 const { ObjectId } = require("mongodb");
+const { getCollection } = require("../db");
 const IntelReport = require("../models/IntelReport");
 
 exports.createReport = async (req, res) => {
@@ -8,7 +9,7 @@ exports.createReport = async (req, res) => {
       return res.status(400).json({ error: "Validation failed", details: validation.errors });
     }
     const report = new IntelReport(req.body);
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const result = await collection.insertOne(report.toDocument());
     res.status(201).json({
       message: "Report created successfully",
@@ -23,7 +24,7 @@ exports.createReport = async (req, res) => {
 
 exports.getAllReports = async (req, res) => {
   try {
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const reports = await collection.find({}).toArray();
     res.json({ message: "All intelligence reports", count: reports.length, reports });
   } catch (error) {
@@ -34,9 +35,13 @@ exports.getAllReports = async (req, res) => {
 
 exports.getHighThreatReports = async (req, res) => {
   try {
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const highThreatReports = await collection.find({ threatLevel: { $gte: 4 } }).toArray();
-    res.json({ message: "High-priority threat reports", count: highThreatReports.length, reports: highThreatReports });
+    res.json({
+      message: "High-priority threat reports",
+      count: highThreatReports.length,
+      reports: highThreatReports,
+    });
   } catch (error) {
     console.error("Error fetching high-priority reports:", error);
     res.status(500).json({ error: "Failed to fetch high-priority reports", message: error.message });
@@ -49,7 +54,7 @@ exports.confirmReport = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ error: "Invalid report ID format" });
     }
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const result = await collection.updateOne(
       { _id: new ObjectId(id) },
       { $set: { confirmed: true, confirmedAt: new Date() } }
@@ -71,7 +76,7 @@ exports.deleteReport = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ error: "Invalid report ID format" });
     }
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const result = await collection.deleteOne({ _id: new ObjectId(id) });
     if (result.deletedCount === 0) {
       return res.status(404).json({ error: "Report not found" });
@@ -89,7 +94,7 @@ exports.getReportById = async (req, res) => {
     if (!ObjectId.isValid(id)) {
       return res.status(400).json({ error: "Invalid report ID format" });
     }
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const report = await collection.findOne({ _id: new ObjectId(id) });
     if (!report) {
       return res.status(404).json({ error: "Report not found" });
@@ -104,9 +109,14 @@ exports.getReportById = async (req, res) => {
 exports.getAgentReports = async (req, res) => {
   try {
     const { fieldCode } = req.params;
-    const collection = req.app.get("collection");
+    const collection = getCollection();
     const agentReports = await collection.find({ fieldCode: fieldCode }).toArray();
-    res.json({ message: `Reports from agent ${fieldCode}`, agent: fieldCode, count: agentReports.length, reports: agentReports });
+    res.json({
+      message: `Reports from agent ${fieldCode}`,
+      agent: fieldCode,
+      count: agentReports.length,
+      reports: agentReports,
+    });
   } catch (error) {
     console.error("Error fetching agent reports:", error);
     res.status(500).json({ error: "Failed to fetch agent reports", message: error.message });

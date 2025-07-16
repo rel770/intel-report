@@ -1,14 +1,15 @@
 {
-  "name": "mongodb",
+  "name": "intel-report-api",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node --watch server.js"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
   },
-  "keywords": [],
+  "keywords": ["intelligence", "mongodb", "express", "api"],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Intelligence Unit Threat Report Terminal API",
   "dependencies": {
     "dotenv": "^17.2.0",
     "express": "^5.1.0",
