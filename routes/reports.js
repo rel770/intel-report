@@ -65,4 +65,31 @@ router.get("/", async (req, res) => {
   }
 });
 
+/**
+ * GET /reports/high
+ * Get high-priority reports (threatLevel >= 4)
+ */
+router.get("/high", async (req, res) => {
+  try {
+    const collection = req.app.get("collection");
+    const highThreatReports = await collection
+      .find({
+        threatLevel: { $gte: 4 },
+      })
+      .toArray();
+
+    res.json({
+      message: "High-priority threat reports",
+      count: highThreatReports.length,
+      reports: highThreatReports,
+    });
+  } catch (error) {
+    console.error("Error fetching high-priority reports:", error);
+    res.status(500).json({
+      error: "Failed to fetch high-priority reports",
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
