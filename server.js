@@ -7,6 +7,7 @@ const PORT = process.env.PORT || 3000;
 
 // Import routes
 const reportsRoutes = require("./routes/reports");
+const statsRoutes = require("./routes/stats");
 
 // Middleware
 app.use(express.json());
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/reports", reportsRoutes);
+app.use("/stats", statsRoutes);
 
 // Start server
 app.listen(PORT, () => {
