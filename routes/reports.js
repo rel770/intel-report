@@ -92,4 +92,53 @@ router.get("/high", async (req, res) => {
   }
 });
 
+/**
+ * PUT /reports/:id/confirm
+ * Confirm a report (set confirmed to true)
+ */
+router.put("/:id/confirm", async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Validate ObjectId
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).json({
+        error: "Invalid report ID format",
+      });
+    }
+
+    const collection = req.app.get("collection");
+
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      {
+        $set: {
+          confirmed: true,
+          confirmedAt: new Date(),
+        },
+      }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(404).json({
+        error: "Report not found",
+      });
+    }
+
+    // Get updated report
+    const updatedReport = await collection.findOne({ _id: new ObjectId(id) });
+
+    res.json({
+      message: "Report confirmed successfully",
+      report: updatedReport,
+    });
+  } catch (error) {
+    console.error("Error confirming report:", error);
+    res.status(500).json({
+      error: "Failed to confirm report",
+      message: error.message,
+    });
+  }
+});
+
 module.exports = router;
