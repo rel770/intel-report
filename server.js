@@ -1,52 +1,60 @@
+/**
+ * Express Application Setup
+ * 
+ * This file is responsible for:
+ * 1. Express application configuration
+ * 2. Middleware setup
+ * 3. Route loading and configuration
+ * No MongoDB connection logic or server startup here
+ */
 const express = require("express");
-const { MongoClient } = require("mongodb");
 require("dotenv").config();
 
+// Create Express application
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Import routes
-const reportsRoutes = require("./routes/reports");
-const statsRoutes = require("./routes/stats");
-
-// Middleware
+// Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// MongoDB connection
-let db;
-let collection;
-
-MongoClient.connect(process.env.CONNECTION_STRING)
-  .then((client) => {
-    console.log("Connected to MongoDB Atlas");
-    db = client.db("intelligence_unit");
-    collection = db.collection("intel_reports");
-
-    // Set collection in app for routes to access
-    app.set("collection", collection);
-  })
-  .catch((error) => {
-    console.error("Failed to connect to MongoDB:", error);
-    process.exit(1);
-  });
-
-// Basic health check route
-app.get("/", (req, res) => {
-  res.json({
-    message: "Intelligence Unit - Threat Report Terminal",
-    status: "operational",
-    timestamp: new Date().toISOString(),
-  });
+// Request logger middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
 });
 
-// Routes
+// Load route files
+const reportsRoutes = require("./routes/reports");
+const statsRoutes = require("./routes/stats");
+
+// Configure routes
 app.use("/reports", reportsRoutes);
 app.use("/stats", statsRoutes);
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Intelligence Unit API running on http://localhost:${PORT}`);
+// Basic entry point
+app.get("/", (req, res) => {
+  res.json({
+    name: "Intelligence Unit API",
+    status: "operational",
+    endpoints: [
+      "/reports",
+      "/reports/high",
+      "/reports/:id",
+      "/reports/:id/confirm", 
+      "/reports/agent/:fieldCode",
+      "/stats"
+    ]
+  });
 });
 
-module.exports = { app, getCollection: () => collection };
+// Error handling middleware - must be last
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({
+    error: "Internal server error",
+    message: err.message
+  });
+});
+
+// Export the app for use in index.js
+module.exports = app;
