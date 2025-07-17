@@ -10,6 +10,8 @@
 const express = require("express");
 require("dotenv").config();
 
+const { globalErrorHandler } = require("./middleware/errorHandler");
+
 // Create Express application
 const app = express();
 
@@ -58,6 +60,9 @@ app.use((err, req, res, next) => {
     message: err.message,
   });
 });
+
+// Global error handling middleware - must be last
+app.use(globalErrorHandler);
 
 // Export the app for use in index.js
 module.exports = app;
