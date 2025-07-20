@@ -1,124 +1,118 @@
-const { ObjectId } = require("mongodb");
-const { getCollection } = require("../db");
 const IntelReport = require("../models/IntelReport");
+const { catchAsync, ApiError } = require("../middleware/errorHandler");
 
-exports.createReport = async (req, res) => {
-  try {
-    const validation = IntelReport.validate(req.body);
-    if (!validation.isValid) {
-      return res.status(400).json({ error: "Validation failed", details: validation.errors });
+/**
+ * Create a new intelligence report
+ * @route POST /reports
+ */
+exports.createReport = catchAsync(async (req, res) => {
+  const report = await IntelReport.create(req.body);
+  
+  res.status(201).json({
+    success: true,
+    message: "Report created successfully",
+    data: { report }
+  });
+});
+
+/**
+ * Get all intelligence reports
+ * @route GET /reports
+ */
+exports.getAllReports = catchAsync(async (req, res) => {
+  const reports = await IntelReport.findAll();
+  
+  res.json({
+    success: true,
+    message: "All intelligence reports retrieved successfully",
+    data: {
+      count: reports.length,
+      reports
     }
-    const report = new IntelReport(req.body);
-    const collection = getCollection();
-    const result = await collection.insertOne(report.toDocument());
-    res.status(201).json({
-      message: "Report created successfully",
-      id: result.insertedId,
-      report: { ...report.toDocument(), _id: result.insertedId },
-    });
-  } catch (error) {
-    console.error("Error creating report:", error);
-    res.status(500).json({ error: "Failed to create report", message: error.message });
+  });
+});
+
+/**
+ * Get high threat reports (threatLevel >= 4)
+ * @route GET /reports/high
+ */
+exports.getHighThreatReports = catchAsync(async (req, res) => {
+  const reports = await IntelReport.findHighThreats();
+  
+  res.json({
+    success: true,
+    message: "High-priority threat reports retrieved successfully",
+    data: {
+      count: reports.length,
+      reports
+    }
+  });
+});
+
+/**
+ * Confirm a report (set confirmed to true)
+ * @route PUT /reports/:id/confirm
+ */
+exports.confirmReport = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const report = await IntelReport.confirmById(id);
+  
+  res.json({
+    success: true,
+    message: "Report confirmed successfully",
+    data: { report }
+  });
+});
+
+/**
+ * Delete a report
+ * @route DELETE /reports/:id
+ */
+exports.deleteReport = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const result = await IntelReport.deleteById(id);
+  
+  res.json({
+    success: true,
+    message: "Report deleted successfully",
+    data: { deletedId: result.deletedId }
+  });
+});
+
+/**
+ * Get report by ID
+ * @route GET /reports/:id
+ */
+exports.getReportById = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const report = await IntelReport.findById(id);
+  
+  if (!report) {
+    throw new ApiError(404, "Report not found");
   }
-};
+  
+  res.json({
+    success: true,
+    message: "Report retrieved successfully",
+    data: { report }
+  });
+});
 
-exports.getAllReports = async (req, res) => {
-  try {
-    const collection = getCollection();
-    const reports = await collection.find({}).toArray();
-    res.json({ message: "All intelligence reports", count: reports.length, reports });
-  } catch (error) {
-    console.error("Error fetching reports:", error);
-    res.status(500).json({ error: "Failed to fetch reports", message: error.message });
-  }
-};
-
-exports.getHighThreatReports = async (req, res) => {
-  try {
-    const collection = getCollection();
-    const highThreatReports = await collection.find({ threatLevel: { $gte: 4 } }).toArray();
-    res.json({
-      message: "High-priority threat reports",
-      count: highThreatReports.length,
-      reports: highThreatReports,
-    });
-  } catch (error) {
-    console.error("Error fetching high-priority reports:", error);
-    res.status(500).json({ error: "Failed to fetch high-priority reports", message: error.message });
-  }
-};
-
-exports.confirmReport = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "Invalid report ID format" });
-    }
-    const collection = getCollection();
-    const result = await collection.updateOne(
-      { _id: new ObjectId(id) },
-      { $set: { confirmed: true, confirmedAt: new Date() } }
-    );
-    if (result.matchedCount === 0) {
-      return res.status(404).json({ error: "Report not found" });
-    }
-    const updatedReport = await collection.findOne({ _id: new ObjectId(id) });
-    res.json({ message: "Report confirmed successfully", report: updatedReport });
-  } catch (error) {
-    console.error("Error confirming report:", error);
-    res.status(500).json({ error: "Failed to confirm report", message: error.message });
-  }
-};
-
-exports.deleteReport = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "Invalid report ID format" });
-    }
-    const collection = getCollection();
-    const result = await collection.deleteOne({ _id: new ObjectId(id) });
-    if (result.deletedCount === 0) {
-      return res.status(404).json({ error: "Report not found" });
-    }
-    res.json({ message: "Report deleted successfully", deletedId: id });
-  } catch (error) {
-    console.error("Error deleting report:", error);
-    res.status(500).json({ error: "Failed to delete report", message: error.message });
-  }
-};
-
-exports.getReportById = async (req, res) => {
-  try {
-    const { id } = req.params;
-    if (!ObjectId.isValid(id)) {
-      return res.status(400).json({ error: "Invalid report ID format" });
-    }
-    const collection = getCollection();
-    const report = await collection.findOne({ _id: new ObjectId(id) });
-    if (!report) {
-      return res.status(404).json({ error: "Report not found" });
-    }
-    res.json({ message: "Report retrieved successfully", report });
-  } catch (error) {
-    console.error("Error fetching report:", error);
-    res.status(500).json({ error: "Failed to fetch report", message: error.message });
-  }
-};
-
-exports.getAgentReports = async (req, res) => {
-  try {
-    const { fieldCode } = req.params;
-    const collection = getCollection();
-    const agentReports = await collection.find({ fieldCode: fieldCode }).toArray();
-    res.json({
-      message: `Reports from agent ${fieldCode}`,
+/**
+ * Get all reports from specific agent
+ * @route GET /reports/agent/:fieldCode
+ */
+exports.getAgentReports = catchAsync(async (req, res) => {
+  const { fieldCode } = req.params;
+  const reports = await IntelReport.findByAgent(fieldCode);
+  
+  res.json({
+    success: true,
+    message: `Reports from agent ${fieldCode} retrieved successfully`,
+    data: {
       agent: fieldCode,
-      count: agentReports.length,
-      reports: agentReports,
-    });
-  } catch (error) {
-    console.error("Error fetching agent reports:", error);
-    res.status(500).json({ error: "Failed to fetch agent reports", message: error.message });
-  }
-};
+      count: reports.length,
+      reports
+    }
+  });
+});
