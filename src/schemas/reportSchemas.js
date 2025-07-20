@@ -24,6 +24,24 @@ const createReportSchema = Joi.object({
   description: Joi.string().trim().min(10).max(1000).required(),
 });
 
+// Intel Report Update Schema
+const updateReportSchema = Joi.object({
+  fieldCode: Joi.string()
+    .trim()
+    .min(2)
+    .max(20)
+    .pattern(/^[A-Z0-9-]+$/),
+
+  location: Joi.string().trim().min(3).max(100),
+
+  threatLevel: Joi.number().integer().min(1).max(5),
+
+  description: Joi.string().trim().min(10).max(1000),
+
+  confirmed: Joi.boolean(),
+}).min(1); // At least one field must be provided
+
 module.exports = {
   createReportSchema,
+  updateReportSchema,
 };
