@@ -1,7 +1,7 @@
 const express = require("express");
 const controller = require("../controllers/intelReportController");
 const { validateObjectId, validateBody, sanitizeInput } = require("../middleware/validation");
-const { createReportSchema } = require("../schemas/reportSchemas");
+const { createReportSchema, updateReportSchema } = require("../schemas/reportSchemas");
 const router = express.Router();
 
 // Apply input sanitization to all routes
@@ -26,22 +26,28 @@ router.get("/", controller.getAllReports);
 router.get("/high", controller.getHighThreatReports);
 
 /**
- * GET /reports/:id
- * Get report by ID
- */
-router.get("/:id", validateObjectId('id'), controller.getReportById);
-
-/**
  * PUT /reports/:id/confirm
  * Confirm a report (set confirmed to true)
  */
-router.put("/:id/confirm", validateObjectId('id'), controller.confirmReport);
+router.put("/:id/confirm", validateObjectId("id"), controller.confirmReport);
+
+/**
+ * GET /reports/:id
+ * Get report by ID
+ */
+router.get("/:id", validateObjectId("id"), controller.getReportById);
+
+/**
+ * PUT /reports/:id
+ * Update a report
+ */
+router.put("/:id", validateObjectId("id"), validateBody(updateReportSchema), controller.updateReport);
 
 /**
  * DELETE /reports/:id
  * Delete a report
  */
-router.delete("/:id", validateObjectId('id'), controller.deleteReport);
+router.delete("/:id", validateObjectId("id"), controller.deleteReport);
 
 /**
  * GET /reports/agent/:fieldCode
