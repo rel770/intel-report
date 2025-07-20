@@ -1,7 +1,11 @@
 /**
  * Intel Report Model
  * Validation and structure for intelligence reports
+ * 
+ * Note: all errors should be caught and handled by the controller
  */
+
+const { ApiError } = require("../middleware/errorHandler");
 
 class IntelReport {
   constructor(data) {
@@ -73,9 +77,8 @@ class IntelReport {
 
     const result = await collection.insertOne(report.toDocument());
     return { _id: result.insertedId, ...report.toDocument() };
-   }
-
-   /**
+  }
+  /**
    * Find report by ID
    */
   static async findById(id) {
@@ -83,7 +86,7 @@ class IntelReport {
     const { getCollection } = require("../db");
 
     if (!ObjectId.isValid(id)) {
-      throw new Error("Invalid report ID format");
+      throw new ApiError(400, "Invalid report ID format");
     }
 
     const collection = getCollection();
@@ -92,7 +95,7 @@ class IntelReport {
 
   /**
    * Find all reports with optional filters
-   * 
+   *
    * @param {Object} filters - MongoDB query filters
    * @param {Object} options - Pagination and sorting options
    * @param {number} options.limit - Number of reports to return
@@ -110,6 +113,74 @@ class IntelReport {
     return await collection.find(filters).sort(sort).skip(skip).limit(limit).toArray();
   }
 
+  /**
+   * Find high threat reports (threatLevel >= 4)
+   */
+  static async findHighThreats() {
+    return await this.findAll({ threatLevel: { $gte: 4 } });
+  }
+
+  /**
+   * Find reports by agent field code
+   */
+  static async findByAgent(fieldCode) {
+    return await this.findAll({ fieldCode });
+  }
+
+  /**
+   * Update report by ID
+   */
+  static async updateById(id, updateData) {
+    const { ObjectId } = require("mongodb");
+    const { getCollection } = require("../db");
+
+    if (!ObjectId.isValid(id)) {
+      throw new ApiError(400, "Invalid report ID format");
+    }
+
+    const collection = getCollection();
+    const result = await collection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: { ...updateData, updatedAt: new Date() } }
+    );
+
+    if (result.matchedCount === 0) {
+      throw new ApiError(404, "Report not found");
+    }
+
+    return await this.findById(id);
+  }
+
+  /**
+   * Confirm report by ID
+   */
+  static async confirmById(id) {
+    return await this.updateById(id, {
+      confirmed: true,
+      confirmedAt: new Date(),
+    });
+  }
+
+  /**
+   * Delete report by ID
+   */
+  static async deleteById(id) {
+    const { ObjectId } = require("mongodb");
+    const { getCollection } = require("../db");
+
+    if (!ObjectId.isValid(id)) {
+      throw new ApiError(400, "Invalid report ID format");
+    }
+
+    const collection = getCollection();
+    const result = await collection.deleteOne({ _id: new ObjectId(id) });
+
+    if (result.deletedCount === 0) {
+      throw new ApiError(404, "Report not found");
+    }
+
+    return { deletedId: id };
+  }
 }
 
 module.exports = IntelReport;
