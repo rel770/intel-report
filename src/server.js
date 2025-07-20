@@ -8,12 +8,28 @@
  * No MongoDB connection logic or server startup here
  */
 const express = require("express");
+const cors = require("cors");
+const helmet = require("helmet");
 require("dotenv").config();
 
 const { globalErrorHandler } = require("./middleware/errorHandler");
 
 // Create Express application
 const app = express();
+
+// Security middleware
+app.use(helmet()); // Helmet helps secure Express apps by setting various HTTP headers
+
+app.disable("x-powered-by"); // Disable 'X-Powered-By' header for security reasons
+
+// CORS configuration
+app.use( 
+  cors({
+    origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:3000"],
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  })
+);
 
 // Basic middleware
 app.use(express.json());
