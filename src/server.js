@@ -5,7 +5,6 @@
  * 1. Express application configuration
  * 2. Middleware setup
  * 3. Route loading and configuration
- * No MongoDB connection logic or server startup here
  */
 const express = require("express");
 const cors = require("cors");
@@ -47,28 +46,13 @@ app.use(requestLogger);
 const reportsRoutes = require("./routes/reports");
 const statsRoutes = require("./routes/stats");
 const healthRoutes = require("./routes/health");
+const rootRoutes = require("./routes/root");
 
 // Configure routes
 app.use("/reports", reportsRoutes);
 app.use("/stats", statsRoutes);
 app.use("/health", healthRoutes);
-
-// Basic entry point
-app.get("/", (req, res) => {
-  res.json({
-    name: "Intelligence Unit API",
-    status: "operational",
-    endpoints: [
-      "/reports",
-      "/reports/high",
-      "/reports/:id",
-      "/reports/:id/confirm",
-      "/reports/agent/:fieldCode",
-      "/stats",
-      "/health",
-    ],
-  });
-});
+app.use("/", rootRoutes);
 
 // Global error handling middleware - must be last
 app.use(globalErrorHandler);
