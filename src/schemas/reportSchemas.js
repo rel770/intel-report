@@ -41,7 +41,19 @@ const updateReportSchema = Joi.object({
   confirmed: Joi.boolean(),
 }).min(1); // At least one field must be provided
 
+// Query parameter schemas
+const getReportsQuerySchema = Joi.object({
+  threatLevel: Joi.number().integer().min(1).max(5),
+  confirmed: Joi.boolean(),
+  fieldCode: Joi.string()
+    .trim()
+    .pattern(/^[A-Z0-9-]+$/),
+  limit: Joi.number().integer().min(1).max(100).default(50),
+  skip: Joi.number().integer().min(0).default(0),
+});
+
 module.exports = {
   createReportSchema,
   updateReportSchema,
+  getReportsQuerySchema,
 };
