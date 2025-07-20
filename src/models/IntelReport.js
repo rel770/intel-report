@@ -2,7 +2,8 @@
  * Intel Report Model
  * Validation and structure for intelligence reports
  * 
- * Note: all errors should be caught and handled by the controller
+ * Note: Validation is handled by Joi schemas in middleware
+ * All errors should be caught and handled by the controller
  */
 
 const { ApiError } = require("../middleware/errorHandler");
@@ -17,34 +18,9 @@ class IntelReport {
     this.confirmed = data.confirmed || false;
   }
 
-  /**
-   * Validate required fields
-   */
-  static validate(data) {
-    const errors = [];
-
-    // Required fields
-    if (!data.fieldCode || typeof data.fieldCode !== "string") {
-      errors.push("fieldCode is required and must be a string");
-    }
-
-    if (!data.location || typeof data.location !== "string") {
-      errors.push("location is required and must be a string");
-    }
-
-    if (typeof data.threatLevel !== "number" || data.threatLevel < 1 || data.threatLevel > 5) {
-      errors.push("threatLevel must be a number between 1 and 5");
-    }
-
-    if (!data.description || typeof data.description !== "string") {
-      errors.push("description is required and must be a string");
-    }
-
-    return {
-      isValid: errors.length === 0,
-      errors,
-    };
-  }
+  // ==========================================
+  // Instance Methods
+  // ==========================================
 
   /**
    * Create a MongoDB document from this report
@@ -66,6 +42,10 @@ class IntelReport {
   isHighThreat() {
     return this.threatLevel >= 4;
   }
+
+  // ==========================================
+  // Static Database Methods
+  // ==========================================
 
   /**
    * Create a new report in the database

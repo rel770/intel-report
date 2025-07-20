@@ -116,3 +116,18 @@ exports.getAgentReports = catchAsync(async (req, res) => {
     }
   });
 });
+
+/**
+ * Update a report
+ * @route PUT /reports/:id
+ */
+exports.updateReport = catchAsync(async (req, res) => {
+  const { id } = req.params;
+  const report = await IntelReport.updateById(id, req.body);
+  
+  res.json({
+    success: true,
+    message: "Report updated successfully",
+    data: { report }
+  });
+});
