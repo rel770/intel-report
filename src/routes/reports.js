@@ -26,22 +26,22 @@ router.get("/", controller.getAllReports);
 router.get("/high", controller.getHighThreatReports);
 
 /**
+ * GET /reports/:id
+ * Get report by ID
+ */
+router.get("/:id", validateObjectId('id'), controller.getReportById);
+
+/**
  * PUT /reports/:id/confirm
  * Confirm a report (set confirmed to true)
  */
-router.put("/:id/confirm", controller.confirmReport);
+router.put("/:id/confirm", validateObjectId('id'), controller.confirmReport);
 
 /**
  * DELETE /reports/:id
  * Delete a report
  */
-router.delete("/:id", controller.deleteReport);
-
-/**
- * GET /reports/:id
- * Get report by ID
- */
-router.get("/:id", controller.getReportById);
+router.delete("/:id", validateObjectId('id'), controller.deleteReport);
 
 /**
  * GET /reports/agent/:fieldCode
