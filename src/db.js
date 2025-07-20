@@ -11,25 +11,54 @@ require("dotenv").config();
 // Store client and collection as private variables in the module
 let client;
 let reportsCollection;
+let connectionStatus = "disconnected";
+
+// Connection options with pooling
+const connectionOptions = {
+  maxPoolSize: 10, // Maximum number of connections in the pool
+  minPoolSize: 2, // Minimum number of connections in the pool
+  maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+  serverSelectionTimeoutMS: 5000, // How long to try selecting a server
+};
 
 /**
- * Creates connection to MongoDB
+ * Creates connection to MongoDB with retry logic
  * @returns {Promise} - Promise that resolves when connection is established
  */
-async function connectDB() {
-  try {
-    // Simple connection without additional options
-    client = await MongoClient.connect(process.env.CONNECTION_STRING);
+async function connectDB(maxRetries = 3, retryDelay = 2000) {
+  let retries = 0;
 
-    // Access database and collection
-    const db = client.db("intelligence_unit");
-    reportsCollection = db.collection("intel_reports");
+  while (retries < maxRetries) {
+    try {
+      console.log(`Attempting MongoDB connection... (attempt ${retries + 1}/${maxRetries})`);
 
-    console.log("✔ MongoDB connection established successfully");
-    return client;
-  } catch (error) {
-    console.error("✘ MongoDB connection error:", error);
-    throw error;
+      // Connection with pooling options
+      client = await MongoClient.connect(process.env.CONNECTION_STRING, connectionOptions);
+
+      // Access database and collection
+      const db = client.db("intelligence_unit");
+      reportsCollection = db.collection("intel_reports");
+
+      console.log("✔ MongoDB connection established successfully");
+      console.log(
+        `✔ Connection pool configured: min=${connectionOptions.minPoolSize}, max=${connectionOptions.maxPoolSize}`
+      );
+      connectionStatus = "connected";
+      return client;
+    } catch (error) {
+      retries++;
+      connectionStatus = "error";
+      console.error(`✘ MongoDB connection attempt ${retries} failed:`, error.message);
+
+      if (retries < maxRetries) {
+        console.log(`Retrying in ${retryDelay}ms...`);
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        retryDelay *= 2; // Exponential backoff
+      } else {
+        console.error("✘ All MongoDB connection attempts failed");
+        throw error;
+      }
+    }
   }
 }
 
@@ -45,12 +74,20 @@ function getCollection() {
 }
 
 /**
+ * Get current connection status
+ */
+function getConnectionStatus() {
+  return connectionStatus;
+}
+
+/**
  * Closes MongoDB connection
  * Useful mainly for tests or graceful app shutdown
  */
 async function closeDB() {
   if (client) {
     await client.close();
+    connectionStatus = "disconnected";
     console.log("MongoDB connection closed");
   }
 }
@@ -58,5 +95,6 @@ async function closeDB() {
 module.exports = {
   connectDB,
   getCollection,
+  getConnectionStatus,
   closeDB,
 };
