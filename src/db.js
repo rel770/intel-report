@@ -12,20 +12,29 @@ require("dotenv").config();
 let client;
 let reportsCollection;
 
+// Connection options with pooling
+const connectionOptions = {
+  maxPoolSize: 10, // Maximum number of connections in the pool
+  minPoolSize: 2,  // Minimum number of connections in the pool
+  maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
+  serverSelectionTimeoutMS: 5000, // How long to try selecting a server
+};
+
 /**
  * Creates connection to MongoDB
  * @returns {Promise} - Promise that resolves when connection is established
  */
 async function connectDB() {
   try {
-    // Simple connection without additional options
-    client = await MongoClient.connect(process.env.CONNECTION_STRING);
+    // Connection with pooling options
+    client = await MongoClient.connect(process.env.CONNECTION_STRING, connectionOptions);
 
     // Access database and collection
     const db = client.db("intelligence_unit");
     reportsCollection = db.collection("intel_reports");
 
     console.log("✔ MongoDB connection established successfully");
+    console.log(`✔ Connection pool configured: min=${connectionOptions.minPoolSize}, max=${connectionOptions.maxPoolSize}`);
     return client;
   } catch (error) {
     console.error("✘ MongoDB connection error:", error);
