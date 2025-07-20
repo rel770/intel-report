@@ -73,7 +73,43 @@ class IntelReport {
 
     const result = await collection.insertOne(report.toDocument());
     return { _id: result.insertedId, ...report.toDocument() };
+   }
+
+   /**
+   * Find report by ID
+   */
+  static async findById(id) {
+    const { ObjectId } = require("mongodb");
+    const { getCollection } = require("../db");
+
+    if (!ObjectId.isValid(id)) {
+      throw new Error("Invalid report ID format");
+    }
+
+    const collection = getCollection();
+    return await collection.findOne({ _id: new ObjectId(id) });
   }
+
+  /**
+   * Find all reports with optional filters
+   * 
+   * @param {Object} filters - MongoDB query filters
+   * @param {Object} options - Pagination and sorting options
+   * @param {number} options.limit - Number of reports to return
+   * @param {number} options.skip - Number of reports to skip
+   * @param {Object} options.sort - Sorting criteria
+   * @param {string} options.sort.field - Field to sort by
+   * @param {number} options.sort.order - 1 for ascending, -1 for descending
+   * @returns {Promise<Array>} - Array of reports
+   */
+  static async findAll(filters = {}, options = {}) {
+    const { getCollection } = require("../db");
+    const collection = getCollection();
+    const { limit = 50, skip = 0, sort = { timestamp: -1 } } = options;
+
+    return await collection.find(filters).sort(sort).skip(skip).limit(limit).toArray();
+  }
+
 }
 
 module.exports = IntelReport;
