@@ -1,0 +1,29 @@
+/**
+ * Joi Validation Schemas
+ * Defines validation rules for report endpoints
+ */
+
+const Joi = require("joi");
+
+// Intel Report Create Schema
+const createReportSchema = Joi.object({
+  fieldCode: Joi.string()
+    .trim()
+    .min(2)
+    .max(20)
+    .pattern(/^[A-Z0-9-]+$/)
+    .required()
+    .messages({
+      "string.pattern.base": "fieldCode must contain only uppercase letters, numbers, and hyphens",
+    }),
+
+  location: Joi.string().trim().min(3).max(100).required(),
+
+  threatLevel: Joi.number().integer().min(1).max(5).required(),
+
+  description: Joi.string().trim().min(10).max(1000).required(),
+});
+
+module.exports = {
+  createReportSchema,
+};
