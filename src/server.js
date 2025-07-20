@@ -14,6 +14,7 @@ require("dotenv").config();
 
 const { globalErrorHandler } = require("./middleware/errorHandler");
 const requestLogger = require("./middleware/requestLogger");
+const { generalLimiter } = require("./middleware/rateLimiter");
 
 // Create Express application
 const app = express();
@@ -35,6 +36,9 @@ app.use(
 // Basic middleware
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Rate limiting middleware
+app.use(generalLimiter);
 
 // Request logger middleware
 app.use(requestLogger);
