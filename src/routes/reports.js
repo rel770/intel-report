@@ -1,12 +1,17 @@
 const express = require("express");
 const controller = require("../controllers/intelReportController");
+const { validateObjectId, validateBody, sanitizeInput } = require("../middleware/validation");
+const { createReportSchema } = require("../schemas/reportSchemas");
 const router = express.Router();
+
+// Apply input sanitization to all routes
+router.use(sanitizeInput);
 
 /**
  * POST /reports
  * Create a new intelligence report
  */
-router.post("/", controller.createReport);
+router.post("/", validateBody(createReportSchema), controller.createReport);
 
 /**
  * GET /reports
