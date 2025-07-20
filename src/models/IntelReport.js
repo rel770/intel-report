@@ -64,6 +64,18 @@ class IntelReport {
   }
 
   /**
+   * Create a new report in the database
+   */
+  static async create(reportData) {
+    const { getCollection } = require("../db");
+    const report = new IntelReport(reportData);
+    const collection = getCollection();
+
+    const result = await collection.insertOne(report.toDocument());
+    return { _id: result.insertedId, ...report.toDocument() };
+   }
+
+   /**
    * Find report by ID
    */
   static async findById(id) {
@@ -97,6 +109,7 @@ class IntelReport {
 
     return await collection.find(filters).sort(sort).skip(skip).limit(limit).toArray();
   }
+
 }
 
 module.exports = IntelReport;
