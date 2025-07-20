@@ -22,6 +22,12 @@ class ApiError extends Error {
 }
 
 /**
+ * Async error wrapper
+ * Catches async errors and passes them to error handler
+ */
+const catchAsync = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
+/**
  * Global error handling middleware
  */
 const globalErrorHandler = (err, req, res, next) => {
@@ -65,5 +71,6 @@ const globalErrorHandler = (err, req, res, next) => {
 
 module.exports = {
   ApiError,
+  catchAsync,
   globalErrorHandler,
 };
