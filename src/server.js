@@ -49,10 +49,10 @@ const healthRoutes = require("./routes/health");
 const rootRoutes = require("./routes/root");
 
 // Configure routes
+app.use("/", rootRoutes);
 app.use("/reports", reportsRoutes);
 app.use("/stats", statsRoutes);
 app.use("/health", healthRoutes);
-app.use("/", rootRoutes);
 
 // Global error handling middleware - must be last
 app.use(globalErrorHandler);
