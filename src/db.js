@@ -11,11 +11,12 @@ require("dotenv").config();
 // Store client and collection as private variables in the module
 let client;
 let reportsCollection;
+let connectionStatus = "disconnected";
 
 // Connection options with pooling
 const connectionOptions = {
   maxPoolSize: 10, // Maximum number of connections in the pool
-  minPoolSize: 2,  // Minimum number of connections in the pool
+  minPoolSize: 2, // Minimum number of connections in the pool
   maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
   serverSelectionTimeoutMS: 5000, // How long to try selecting a server
 };
@@ -34,9 +35,13 @@ async function connectDB() {
     reportsCollection = db.collection("intel_reports");
 
     console.log("✔ MongoDB connection established successfully");
-    console.log(`✔ Connection pool configured: min=${connectionOptions.minPoolSize}, max=${connectionOptions.maxPoolSize}`);
+    console.log(
+      `✔ Connection pool configured: min=${connectionOptions.minPoolSize}, max=${connectionOptions.maxPoolSize}`
+    );
+    connectionStatus = "connected";
     return client;
   } catch (error) {
+    connectionStatus = "error";
     console.error("✘ MongoDB connection error:", error);
     throw error;
   }
@@ -54,12 +59,20 @@ function getCollection() {
 }
 
 /**
+ * Get current connection status
+ */
+function getConnectionStatus() {
+  return connectionStatus;
+}
+
+/**
  * Closes MongoDB connection
  * Useful mainly for tests or graceful app shutdown
  */
 async function closeDB() {
   if (client) {
     await client.close();
+    connectionStatus = "disconnected";
     console.log("MongoDB connection closed");
   }
 }
@@ -67,5 +80,6 @@ async function closeDB() {
 module.exports = {
   connectDB,
   getCollection,
+  getConnectionStatus,
   closeDB,
 };
