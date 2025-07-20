@@ -25,7 +25,7 @@ const validateBody = (schema) => {
   return (req, res, next) => {
     const { error, value } = schema.validate(req.body, {
       abortEarly: false, // Validate all fields, not just the first error
-      stripUnknown: true // Remove unknown fields
+      stripUnknown: true, // Remove unknown fields
     });
 
     if (error) {
@@ -37,7 +37,27 @@ const validateBody = (schema) => {
   };
 };
 
+/**
+ * Validates query parameters against Joi schema
+ */
+const validateQuery = (schema) => {
+  return (req, res, next) => {
+    const { error, value } = schema.validate(req.query, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+
+    if (error) {
+      return next(error);
+    }
+
+    req.query = value;
+    next();
+  };
+};
+
 module.exports = {
   validateObjectId,
-  validateBody
+  validateBody,
+  validateQuery,
 };
