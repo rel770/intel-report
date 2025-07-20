@@ -13,6 +13,7 @@ const helmet = require("helmet");
 require("dotenv").config();
 
 const { globalErrorHandler } = require("./middleware/errorHandler");
+const requestLogger = require("./middleware/requestLogger");
 
 // Create Express application
 const app = express();
@@ -23,7 +24,7 @@ app.use(helmet()); // Helmet helps secure Express apps by setting various HTTP h
 app.disable("x-powered-by"); // Disable 'X-Powered-By' header for security reasons
 
 // CORS configuration
-app.use( 
+app.use(
   cors({
     origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:3000"],
     credentials: true,
